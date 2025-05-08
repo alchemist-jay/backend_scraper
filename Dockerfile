@@ -1,6 +1,6 @@
 FROM node:20-bookworm-slim
 
-# Install necessary libs for Puppeteer Chromium
+# Install Chrome dependencies and Chrome itself
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
@@ -22,18 +22,14 @@ RUN apt-get update && apt-get install -y \
     xdg-utils \
     libgbm1 \
     libxshmfence1 \
-    libxshmfence1 \
-    libdrm2 \  
-    libxkbcommon0 \  
-    libx11-6 \  
-    libxcomposite1 \  
-    libxdamage1 \  
-    libxext6 \  
-    libxfixes3 \ 
-    libxrandr2 \  
-    libxss1 \  
-    libxtst6 \ 
     --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Chrome
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -47,6 +43,14 @@ RUN npm install
 
 # Copy the rest of the application
 COPY . .
+
+# Create directory for Puppeteer cache
+RUN mkdir -p /app/.cache/puppeteer
+
+# Set environment variables for Puppeteer
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
+ENV NODE_OPTIONS="--max-old-space-size=256"
 
 # Expose port
 EXPOSE 3000
