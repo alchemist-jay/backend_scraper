@@ -1,6 +1,6 @@
 FROM node:20-bookworm-slim
 
-# Install system dependencies
+# Install necessary libs for Puppeteer Chromium
 RUN apt-get update && apt-get install -y \
     wget \
     ca-certificates \
@@ -20,26 +20,19 @@ RUN apt-get update && apt-get install -y \
     libxrandr2 \
     xdg-utils \
     --no-install-recommends \
-    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy package.json + package-lock.json first (for better caching)
-COPY package*.json ./
-
-# Install dependencies (triggers postinstall)
-RUN npm install
-
-# Ensure puppeteer binary is executable
-RUN chmod +x node_modules/.bin/puppeteer
-
-# Copy rest of the app
+# Copy files
 COPY . .
+
+# Install Node dependencies
+RUN npm install
 
 # Expose port
 EXPOSE 3000
 
-# Run app
+# Start the app
 CMD ["node", "app.js"]
