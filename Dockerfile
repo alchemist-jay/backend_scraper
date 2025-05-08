@@ -29,11 +29,11 @@ WORKDIR /app
 # Copy package.json + package-lock.json first (for better caching)
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies (triggers postinstall)
 RUN npm install
 
-# Install puppeteer Chromium binaries
-RUN npx puppeteer browsers install chrome
+# Ensure puppeteer binary is executable
+RUN chmod +x node_modules/.bin/puppeteer
 
 # Copy rest of the app
 COPY . .
