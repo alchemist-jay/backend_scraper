@@ -2,13 +2,8 @@ import puppeteer from 'puppeteer';
 
 export const launchBrowser = async () => {
     try {
-        // First, verify Chrome exists
-        const chromePath = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable';
-        console.log('Chrome path:', chromePath);
-
         const browser = await puppeteer.launch({
             headless: 'new',
-            executablePath: chromePath,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
