@@ -2,7 +2,10 @@ import puppeteer from "puppeteer";
 
 class UnstopScraper {
     async scrapeCompetitions() {
-        const browser = await puppeteer.launch({ headless: true });
+        const browser = await puppeteer.launch({
+            headless: 'new',
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        });
         const page = await browser.newPage();
 
         try {

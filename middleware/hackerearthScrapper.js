@@ -4,9 +4,9 @@ class HackerEarthScraper {
     static async getRelevantEvents() {
         console.log("Starting HackerEarth scraping...")
         const browser = await puppeteer.launch({
-            headless: "new",
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
-        })
+            headless: 'new',
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        });
         const page = await browser.newPage()
 
         try {
