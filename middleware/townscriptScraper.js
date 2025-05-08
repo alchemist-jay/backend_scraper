@@ -1,5 +1,4 @@
-import puppeteer from 'puppeteer-core';
-import chromium from 'chrome-aws-lambda';
+import { launchBrowser, createPage } from '../services/puppeteerConfig.js';
 
 const MAX_RETRIES = 2;
 const TIMEOUT = 90000;
@@ -9,14 +8,8 @@ class TownscriptScraper {
         let browser;
         for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
-                browser = await puppeteer.launch({
-                    headless: chromium.headless,
-                    executablePath: await chromium.executablePath(),
-                    args: chromium.args,
-                    defaultViewport: chromium.defaultViewport,
-                });
-
-                const page = await browser.newPage();
+                browser = await launchBrowser();
+                const page = await createPage(browser);
 
                 const url = `https://www.townscript.com/search?place=${encodeURIComponent(city)}&q=${encodeURIComponent(suggestedTopics)}`;
                 await page.goto(url, { waitUntil: "networkidle2", timeout: TIMEOUT });
@@ -39,13 +32,12 @@ class TownscriptScraper {
                     });
                 });
 
-                await page.close();
-                await browser.close();
                 return events;
             } catch (error) {
                 console.warn(`⚠️ [Attempt ${attempt}] Error scraping "${suggestedTopics}":`, error.message);
+                if (attempt === MAX_RETRIES) return [];
+            } finally {
                 if (browser) await browser.close();
-                if (attempt === MAX_RETRIES) return []; // Return empty array after final attempt
             }
         }
     }
@@ -56,16 +48,20 @@ class TownscriptScraper {
             return [];
         }
 
-        const results = await Promise.allSettled(
-            suggestedTopics.map((suggestedTopics) => this.scrapeCategoryEvents(city, suggestedTopics))
-        );
+        try {
+            const results = await Promise.allSettled(
+                suggestedTopics.map((topic) => this.scrapeCategoryEvents(city, topic))
+            );
 
-        const allEvents = results
-            .filter(r => r.status === "fulfilled")
-            .flatMap(r => r.value);
+            const allEvents = results
+                .filter(r => r.status === "fulfilled")
+                .flatMap(r => r.value);
 
-        const uniqueEvents = Array.from(new Map(allEvents.map(e => [e.link, e])).values());
-        return uniqueEvents;
+            return Array.from(new Map(allEvents.map(e => [e.link, e])).values());
+        } catch (error) {
+            console.error("❌ Error in scrapeEvents:", error);
+            return [];
+        }
     }
 }
 

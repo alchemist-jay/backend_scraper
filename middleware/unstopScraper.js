@@ -1,16 +1,12 @@
-import puppeteer from "puppeteer";
+import { launchBrowser, createPage } from '../services/puppeteerConfig.js';
 
 class UnstopScraper {
     async scrapeCompetitions() {
-        const browser = await puppeteer.launch({
-            headless: true,
-            executablePath: puppeteer.executablePath(),
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        });
-
-        const page = await browser.newPage();
-
+        let browser;
         try {
+            browser = await launchBrowser();
+            const page = await createPage(browser);
+
             console.log("Opening Unstop Competitions Page...");
             await page.goto("https://unstop.com/competitions", { waitUntil: "networkidle2" });
 
@@ -25,9 +21,6 @@ class UnstopScraper {
                 return Array.from(document.querySelectorAll(".single_profile")).map(card => {
                     const title = card.querySelector(".opp-title h2")?.innerText.trim() || "No Title";
                     const imageUrl = card.querySelector(".user_img img")?.src || "";
-                    if (!imageUrl.startsWith("https://d8it4huxumps7.cloudfront.net/uploads/images/")) {
-                        console.warn("❌ Invalid Image URL:", imageUrl);
-                    }
                     const id = card.id;
                     const link = id ? `https://unstop.com/competitions/${id}` : "#";
 
@@ -45,19 +38,23 @@ class UnstopScraper {
                         eventDate.setDate(eventDate.getDate() + daysLeft);
                         exactDate = eventDate.toISOString().split("T")[0];
                     }
-                    type = "competition";
 
-                    return { title, imageUrl, exactDate, link, type };
-
+                    return {
+                        title,
+                        imageUrl,
+                        exactDate,
+                        link,
+                        type: "competition"
+                    };
                 }).filter(event => event.title !== "No Title" && event.link !== "#");
             });
 
-            await browser.close();
             return competitions;
         } catch (error) {
             console.error("Scraping error:", error);
-            await browser.close();
-            return [];
+            throw error;
+        } finally {
+            if (browser) await browser.close();
         }
     }
 }
