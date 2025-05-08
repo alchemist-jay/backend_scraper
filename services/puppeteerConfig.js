@@ -18,7 +18,9 @@ export const launchBrowser = async () => {
             ],
             executablePath: './google-chrome-stable',
             ignoreHTTPSErrors: true,
-            timeout: 30000
+            timeout: 60000,
+            pipe: true,
+            dumpio: true
         });
         return browser;
     } catch (error) {
@@ -32,8 +34,8 @@ export const createPage = async (browser) => {
         const page = await browser.newPage();
         await page.setViewport({ width: 1920, height: 1080 });
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-        await page.setDefaultNavigationTimeout(30000);
-        await page.setDefaultTimeout(30000);
+        await page.setDefaultNavigationTimeout(60000);
+        await page.setDefaultTimeout(60000);
         return page;
     } catch (error) {
         console.error('Failed to create page:', error);
