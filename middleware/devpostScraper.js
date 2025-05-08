@@ -4,9 +4,11 @@ import puppeteer from 'puppeteer-core';
 class DevpostScraper {
     async scrapeHackathons(maxScrolls = 3) {
         const browser = await puppeteer.launch({
-            headless: 'new',
+            headless: true,
+            executablePath: puppeteer.executablePath(),
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
         });
+
         const page = await browser.newPage();
         await page.goto('https://devpost.com/hackathons', { waitUntil: 'networkidle2' });
 

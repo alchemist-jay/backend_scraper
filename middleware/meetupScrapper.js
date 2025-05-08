@@ -3,9 +3,11 @@ import puppeteer from "puppeteer";
 class MeetupScraper {
     async scrapeEvents(city, suggestedTopics) {
         const browser = await puppeteer.launch({
-            headless: 'new',
+            headless: true,
+            executablePath: puppeteer.executablePath(),
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
         });
+
         const page = await browser.newPage();
         const url = `https://www.meetup.com/find/?location=in--${encodeURIComponent(city)}&source=EVENTS&keywords=${encodeURIComponent(suggestedTopics)}`;
 

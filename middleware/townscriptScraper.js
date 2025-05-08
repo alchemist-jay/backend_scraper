@@ -9,9 +9,11 @@ class TownscriptScraper {
         for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
                 const browser = await puppeteer.launch({
-                    headless: 'new',
+                    headless: true,
+                    executablePath: puppeteer.executablePath(),
                     args: ['--no-sandbox', '--disable-setuid-sandbox'],
                 });
+
                 const page = await browser.newPage();
 
                 const url = `https://www.townscript.com/search?place=${encodeURIComponent(city)}&q=${encodeURIComponent(suggestedTopics)}`;
