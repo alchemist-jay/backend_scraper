@@ -1,7 +1,8 @@
 FROM node:20-bookworm-slim
 
-# Install system dependencies (including required Chromium libs)
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
+    wget \
     ca-certificates \
     fonts-liberation \
     libappindicator3-1 \
@@ -17,25 +18,28 @@ RUN apt-get update && apt-get install -y \
     libxcomposite1 \
     libxdamage1 \
     libxrandr2 \
-    libgbm1 \
-    libxshmfence1 \
-    libpangocairo-1.0-0 \
-    libpango-1.0-0 \
-    libgtk-3-0 \
     xdg-utils \
     --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Set Puppeteer to skip download if you’re using puppeteer-core
-ENV PUPPETEER_SKIP_DOWNLOAD true
-
+# Set working directory
 WORKDIR /app
 
-COPY . /app
+# Copy package.json + package-lock.json first (for better caching)
+COPY package*.json ./
 
-RUN chmod -R +x /app
-
+# Install dependencies
 RUN npm install
 
+# Install puppeteer Chromium binaries
+RUN npx puppeteer browsers install chrome
+
+# Copy rest of the app
+COPY . .
+
+# Expose port
+EXPOSE 3000
+
+# Run app
 CMD ["node", "app.js"]
