@@ -1,6 +1,6 @@
 FROM node:20-bookworm-slim
 
-# Install Chrome dependencies and Chrome itself
+# Install Chrome dependencies
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
@@ -30,7 +30,8 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
     && apt-get update \
     && apt-get install -y google-chrome-stable \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && which google-chrome
 
 # Set working directory
 WORKDIR /app
@@ -49,8 +50,10 @@ RUN mkdir -p /app/.cache/puppeteer
 
 # Set environment variables for Puppeteer
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
-ENV NODE_OPTIONS="--max-old-space-size=256"
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+
+# Verify Chrome installation
+RUN node check-chrome.js
 
 # Expose port
 EXPOSE 3000
