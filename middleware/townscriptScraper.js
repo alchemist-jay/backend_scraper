@@ -1,4 +1,5 @@
-import puppeteer from "puppeteer";
+import puppeteer from 'puppeteer-core';
+import chromium from 'chrome-aws-lambda';
 
 const MAX_RETRIES = 2;
 const TIMEOUT = 90000;
@@ -8,10 +9,11 @@ class TownscriptScraper {
         let browser;
         for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
-                const browser = await puppeteer.launch({
-                    headless: true,
-                    executablePath: puppeteer.executablePath(),
-                    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                browser = await puppeteer.launch({
+                    headless: chromium.headless,
+                    executablePath: await chromium.executablePath(),
+                    args: chromium.args,
+                    defaultViewport: chromium.defaultViewport,
                 });
 
                 const page = await browser.newPage();
